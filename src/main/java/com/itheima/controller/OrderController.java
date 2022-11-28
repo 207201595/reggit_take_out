@@ -37,6 +37,7 @@ public class OrderController {
      */
     @GetMapping("/userPage")
     public Result<Page<Orders>> page(Integer page ,Integer pageSize){
+        log.info("测试git版本切换");
         Page<Orders> ordersPage = new Page<>(page,pageSize);
         orderService.page(ordersPage);
         return Result.success(ordersPage);
