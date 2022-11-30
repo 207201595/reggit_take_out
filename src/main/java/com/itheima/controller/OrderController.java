@@ -37,10 +37,6 @@ public class OrderController {
      */
     @GetMapping("/userPage")
     public Result<Page<Orders>> page(Integer page ,Integer pageSize){
-        log.info("测试git版本切换");
-        log.info("测试分支切换hot-fix热修复分支");
-        log.info("master 模拟代码冲突");
-        log.info("host-fix 模拟代码冲突");
         Page<Orders> ordersPage = new Page<>(page,pageSize);
         orderService.page(ordersPage);
         return Result.success(ordersPage);
