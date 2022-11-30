@@ -14,7 +14,7 @@ public class test {
     }
 
     public static void goShow(Lambda_01 lambda_01){
-        lambda_01.show("张三",22);
+        lambda_01.show("张三测试拉取",22);
     }
 
 
