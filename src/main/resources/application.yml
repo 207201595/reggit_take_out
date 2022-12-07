@@ -1,7 +1,13 @@
 server:
   port: 8080
-
 spring:
+  profiles:
+    active: pro
+
+---
+#开发环境
+spring:
+  profiles: dev
   application:
     #??????
     name: reggie_take_out
@@ -22,3 +28,28 @@ mybatis-plus:
       id-type: ASSIGN_ID
 reggie:
   path: /Users/zhangtongzheng/Downloads/图片/
+
+---
+  #上线环境
+  spring:
+    profiles: pro
+    application:
+      #??????
+      name: reggie_take_out
+    datasource:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: Ztz0428..
+      type: com.alibaba.druid.pool.DruidDataSource
+
+  mybatis-plus:
+    configuration:
+      #???????????????????????????????????????
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    global-config:
+      db-config:
+        id-type: ASSIGN_ID
+  reggie:
+    path: /usr/local/app/img/
