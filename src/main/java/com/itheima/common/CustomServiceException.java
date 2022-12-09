@@ -6,7 +6,7 @@ package com.itheima.common;
  */
 
 /**
- * 自定义
+ * 自定义异常CustomServiceException
  */
 
 public class CustomServiceException extends RuntimeException{
