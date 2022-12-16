@@ -15,7 +15,7 @@ public class ReggitTakeOutApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ReggitTakeOutApplication.class, args);
-        log.info("项目启动成功");
+        log.info("瑞吉项目启动成功");
 
 
     }
