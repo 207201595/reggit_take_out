@@ -7,6 +7,9 @@ package com.itheima.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.itheima.common.JacksonObjectMapper;
 import com.itheima.common.Result;
 import com.itheima.dto.SetmealDto;
 import com.itheima.pojo.Setmeal;
@@ -16,10 +19,12 @@ import com.itheima.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * SetmealDish 和Setmeal共同的前端控制器
@@ -34,6 +39,12 @@ public class SetmealController {
 
     @Autowired
     private SetmealService setmealService;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+   @Autowired
+   private JacksonObjectMapper jacksonObjectMapper;
 
     /**
      * 新增套餐
@@ -76,11 +87,18 @@ public class SetmealController {
      */
     @PostMapping("/status/{status}")
     public Result<String> updateStatus(@PathVariable Integer status,@RequestParam List<Long> ids ){
-        System.out.println(status);
-        ids.forEach(System.out::println);
+        //查询套餐数据
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(Setmeal::getId,ids);
         List<Setmeal> list = setmealService.list(queryWrapper);
+
+        //清空一下redis数据
+        List<String> redisDeleteKeys = list.stream().map(setmeal -> {
+            return "setmeal:" + setmeal.getCategoryId();
+        }).collect(Collectors.toList());
+        stringRedisTemplate.delete(redisDeleteKeys);
+
+        //修改所有的套餐状态
         list = list.stream().map(setmeal -> {
             setmeal.setStatus(status);
             return setmeal;
@@ -91,7 +109,7 @@ public class SetmealController {
         return Result.success("套餐状态修改成功");
     }
     /**
-     * 修改套餐前查询
+     * 修改套餐前查询 展示的数据
      */
     @GetMapping("/{id}")
     public Result<SetmealDto> updateSelect(@PathVariable Long id){
@@ -117,14 +135,25 @@ public class SetmealController {
      * 手机端 查询套餐数据
      */
     @GetMapping("/list")
-    public Result<List<Setmeal>> list(Setmeal setmeal){
-        System.out.println(setmeal);
+    public Result<List<Setmeal>> list(Setmeal setmeal) throws JsonProcessingException {
+        List<Setmeal> list = null;
+        //先查询redis有没有缓存数据 如果没有查询数据库
+        String key = "setmeal:"+setmeal.getCategoryId();
+        String s = stringRedisTemplate.opsForValue().get(key);
+        if (s!=null){
+            //如果查询到数据就序列化后返回
+            list = jacksonObjectMapper.readValue(s, new TypeReference<List<Setmeal>>() {
+            });
+            return Result.success(list);
+        }
+        //如果redis中没有数据就查询mysql数据库
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId());
         queryWrapper.eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus());
         queryWrapper.orderByDesc(Setmeal::getUpdateTime);
-        List<Setmeal> list = setmealService.list(queryWrapper);
-
+        list = setmealService.list(queryWrapper);
+        //把查询结果序列化后存储到redis中
+        stringRedisTemplate.opsForValue().set(key,jacksonObjectMapper.writeValueAsString(list));
         return Result.success(list);
     }
 }

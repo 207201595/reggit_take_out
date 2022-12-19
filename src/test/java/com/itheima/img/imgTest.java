@@ -30,4 +30,15 @@ public class imgTest {
 
 
     }
+
+    @Test
+    public void test_01(){
+        Object s = "";
+
+        if (s!=null){
+            System.out.println("不为空");
+        }else {
+            System.out.println("为空");
+        }
+    }
 }

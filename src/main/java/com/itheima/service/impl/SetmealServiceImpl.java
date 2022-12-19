@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,14 +40,23 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @Value("${reggie.path}")
-    private String basePath;
+    private String imgPath;
 
 
-
+    /**
+     * 保存套餐 和 套餐菜品关系数据
+     * @param setmealDto
+     */
     @Override
     @Transactional
     public void saveWithDish(SetmealDto setmealDto) {
+        //清空redis数据
+        String key = "setmeal:"+setmealDto.getCategoryId();
+        stringRedisTemplate.delete(key);
         /**
          * 先保存套餐相关信息
          * 当执行完保存后 空的id会被框架赋值
@@ -68,6 +78,13 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
     }
 
+    /**
+     * 分页查询
+     * @param page
+     * @param pageSize
+     * @param name
+     * @return
+     */
     @Override
     public Page<SetmealDto> page(Integer page, Integer pageSize,String name) {
         Page<Setmeal> setmealPage = new Page<>();
@@ -112,6 +129,10 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         return setmealDtoPage;
     }
 
+    /**
+     * 批量删除
+     * @param ids
+     */
     @Override
     public void delete(String ids) {
         //把字符串中的id提取成数组
@@ -139,14 +160,18 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(Setmeal::getId,list);
         List<Setmeal> setmeals = super.list(queryWrapper);
-        System.out.println("--------------------------------");
-        setmeals.forEach(System.out::println);
+        //清空redis的数据
+        List<String> redisDeleteKeys = setmeals.stream().map(setmeal -> {
+            return "setmeal:" + setmeal.getCategoryId();
+        }).collect(Collectors.toList());
+        stringRedisTemplate.delete(redisDeleteKeys);
+        //删除对应的图片
         List<String> imgList = setmeals.stream().map(setmeal -> {
             return setmeal.getImage();
         }).collect(Collectors.toList());
 
         long deleteImgCount = imgList.stream().filter(imgName -> {
-            File file = new File(basePath + imgName);
+            File file = new File(imgPath + imgName);
             return file.delete();
         }).count();
         System.out.println("删除了"+deleteImgCount+"张图片");
@@ -160,8 +185,16 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
     }
 
+    /**
+     * 修改套餐
+     * @param setmealDto
+     */
     @Override
     public void updateWithDish(SetmealDto setmealDto) {
+
+        //清空redis数据
+        String key = "setmeal:"+setmealDto.getCategoryId();
+        stringRedisTemplate.delete(key);
         //先修改套餐修改信息
         super.updateById(setmealDto);
         /**

@@ -35,5 +35,9 @@ public interface DishService extends IService<Dish> {
      */
     public void updateWithFlavor(DishDto dishDto);
 
-
+    /**
+     *
+     * 删除方法
+     */
+    public void delete(String ids);
 }
