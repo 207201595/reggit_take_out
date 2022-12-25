@@ -27,6 +27,7 @@ import com.itheima.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,6 +55,8 @@ public class DishController {
 
     @Autowired
     private JacksonObjectMapper jacksonObjectMapper;
+
+
 
 
 

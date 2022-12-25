@@ -28,6 +28,10 @@ spring:
         min-idle: 0
         max-active: 8
         max-wait: 1000ms
+  cache:
+    redis:
+      time-to-live: 30M #设置缓存过期时间
+
 
 
 mybatis-plus:
@@ -59,10 +63,12 @@ reggie:
       port: 6379
       database: 0
       password: root
-
+    cache:
+      redis:
+        time-to-live: 30M #设置缓存过期时间
   mybatis-plus:
     configuration:
-      #???????????????????????????????????????
+#下划线转驼峰
       map-underscore-to-camel-case: true
       log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     global-config:

@@ -19,6 +19,8 @@ import com.itheima.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,6 +78,13 @@ public class SetmealController {
 //    public Result<String> delete(@RequestParam List<long> ids){
 //
 //    }
+
+    /**
+     *  allEntries = true 表示删除所有的缓存数据
+     * @param ids
+     * @return
+     */
+//    @CacheEvict(value = "setmealCache",allEntries = true)
     @DeleteMapping
     public Result<String> delete(String ids){
         setmealService.delete(ids);
@@ -134,10 +143,11 @@ public class SetmealController {
     /**
      * 手机端 查询套餐数据
      */
+//    @Cacheable(value = "setmealCache",key = "#setmeal.categoryId+':'+#setmeal.status")
     @GetMapping("/list")
     public Result<List<Setmeal>> list(Setmeal setmeal) throws JsonProcessingException {
         List<Setmeal> list = null;
-        //先查询redis有没有缓存数据 如果没有查询数据库
+//        先查询redis有没有缓存数据 如果没有查询数据库
         String key = "setmeal:"+setmeal.getCategoryId();
         String s = stringRedisTemplate.opsForValue().get(key);
         if (s!=null){
