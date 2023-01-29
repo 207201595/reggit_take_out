@@ -11,5 +11,6 @@ import org.springframework.stereotype.Service;
  * @Date: 2022/11/17 - 11 - 17 - 21:52
  */
 @Service
-public class AddressBookImpl extends ServiceImpl<AddressBookMapper, AddressBook> implements AddressBookService {
+public class AddressBookImpl extends ServiceImpl<AddressBookMapper,AddressBook> implements AddressBookService {
+
 }

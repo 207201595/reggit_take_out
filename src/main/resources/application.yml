@@ -2,7 +2,8 @@ server:
   port: 8080
 spring:
   profiles:
-    active: dev
+    active: pro
+
 
 ---
 #开发环境
@@ -11,12 +12,15 @@ spring:
   application:
     #??????
     name: reggie_take_out
+#    数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: root
     type: com.alibaba.druid.pool.DruidDataSource
+
+#    redis配置
   redis:
     host: localhost
     port: 6379
@@ -28,10 +32,10 @@ spring:
         min-idle: 0
         max-active: 8
         max-wait: 1000ms
+# springcache配置
   cache:
     redis:
       time-to-live: 30M #设置缓存过期时间
-
 
 
 mybatis-plus:
@@ -42,37 +46,68 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
+#  图片存放的目录
 reggie:
   path: /Users/zhangtongzheng/Downloads/图片/
 
 ---
-  #上线环境
-  spring:
-    profiles: pro
-    application:
-      #??????
-      name: reggie_take_out
+#上线环境
+spring:
+  profiles: pro
+  application:
+    #??????
+    name: reggie_take_out
+
+  shardingsphere:
     datasource:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-      username: root
-      password: Ztz0428..
-      type: com.alibaba.druid.pool.DruidDataSource
+      names:
+        master,slave
+      # 主数据源
+      master:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.200.128:3306/reggie?characterEncoding=utf-8
+        username: root
+        password: Ztz0428..
+        type: com.alibaba.druid.pool.DruidDataSource
+      # 从数据源
+      slave:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.200.129:3306/reggie?characterEncoding=utf-8
+        username: root
+        password: Ztz0428..
+        type: com.alibaba.druid.pool.DruidDataSource
+    masterslave:
+      # 读写分离配置
+      load-balance-algorithm-type: round_robin
+      # 最终的数据源名称
+      name: dataSource
+      # 主库数据源名称
+      master-data-source-name: master
+      # 从库数据源名称列表，多个逗号分隔
+      slave-data-source-names: slave
+    props:
+      sql:
+        show: true #开启SQL显示，默认false
+  main:
+    allow-bean-definition-overriding: true
+
+
+  redis:
+    host: 192.168.200.128
+    port: 6379
+    database: 0
+    password: root
+  cache:
     redis:
-      host: 192.168.200.128
-      port: 6379
-      database: 0
-      password: root
-    cache:
-      redis:
-        time-to-live: 30M #设置缓存过期时间
-  mybatis-plus:
-    configuration:
+      time-to-live: 30M #设置缓存过期时间
+
+mybatis-plus:
+  configuration:
 #下划线转驼峰
-      map-underscore-to-camel-case: true
-      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    global-config:
-      db-config:
-        id-type: ASSIGN_ID
-  reggie:
-    path: /usr/local/app/img/
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+reggie:
+  path: /usr/local/app/img/
