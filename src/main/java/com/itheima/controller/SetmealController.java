@@ -16,6 +16,10 @@ import com.itheima.pojo.Setmeal;
 import com.itheima.pojo.SetmealDish;
 import com.itheima.service.SetmealDishService;
 import com.itheima.service.SetmealService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +39,7 @@ import java.util.stream.Stream;
 @RestController
 @RequestMapping("/setmeal")
 @Slf4j
+@Api(tags = "套餐接口-SetmealController")
 public class SetmealController {
     @Autowired
     private SetmealDishService setmealDishService;
@@ -54,6 +59,11 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @ApiOperation(value = "新增套餐接口")
+    @ApiImplicitParams({
+            // required 是否必须
+            @ApiImplicitParam(name = "setmealDto",value = "套餐明细",required = true)
+    })
     public Result<String> save(@RequestBody SetmealDto setmealDto) {
 
         setmealService.saveWithDish(setmealDto);
@@ -63,8 +73,14 @@ public class SetmealController {
      * 分页查询套餐数据
      */
     @GetMapping("/page")
-    public Result<Page<SetmealDto>> page(Integer page,Integer pageSize,Setmeal setmeal){
-        Page<SetmealDto> setmealDtoPage = setmealService.page(page, pageSize,setmeal.getName());
+    @ApiOperation(value = "分类查询套餐接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page",value = "页码",required = true),
+            @ApiImplicitParam(name = "pageSize",value = "条目数",required = true),
+            @ApiImplicitParam(name = "name",value = "套餐名称",required = false)
+    })
+    public Result<Page<SetmealDto>> page(Integer page,Integer pageSize,String name){
+        Page<SetmealDto> setmealDtoPage = setmealService.page(page, pageSize,name);
 
         return  Result.success(setmealDtoPage);
     }
@@ -86,6 +102,10 @@ public class SetmealController {
      */
 //    @CacheEvict(value = "setmealCache",allEntries = true)
     @DeleteMapping
+    @ApiOperation(value = "删除套餐接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids",value = "套餐id数组",required = true)
+    })
     public Result<String> delete(String ids){
         setmealService.delete(ids);
         return Result.success("删除成功");
@@ -95,6 +115,11 @@ public class SetmealController {
      * 启售和停售套餐
      */
     @PostMapping("/status/{status}")
+    @ApiOperation(value = "启售停售套餐接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "status",value = "状态",required = true),
+            @ApiImplicitParam(name = "ids",value = "套餐id集合",required = true)
+    })
     public Result<String> updateStatus(@PathVariable Integer status,@RequestParam List<Long> ids ){
         //查询套餐数据
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
@@ -121,6 +146,10 @@ public class SetmealController {
      * 修改套餐前查询 展示的数据
      */
     @GetMapping("/{id}")
+    @ApiOperation(value = "套餐查询接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id",value = "套餐id",required = true)
+    })
     public Result<SetmealDto> updateSelect(@PathVariable Long id){
         Setmeal setmeal = setmealService.getById(id);
         LambdaQueryWrapper<SetmealDish> setmealDishLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -135,6 +164,10 @@ public class SetmealController {
      * 保存修改的套餐
      */
     @PutMapping
+    @ApiOperation(value = "保存修改套餐接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "setmealDto",value = "套餐信息",required = true)
+    })
     public Result<String> update(@RequestBody SetmealDto setmealDto) {
 
         setmealService.updateWithDish(setmealDto);
@@ -145,6 +178,7 @@ public class SetmealController {
      */
 //    @Cacheable(value = "setmealCache",key = "#setmeal.categoryId+':'+#setmeal.status")
     @GetMapping("/list")
+    @ApiOperation(value = "手机端-套餐条件查询接口")
     public Result<List<Setmeal>> list(Setmeal setmeal) throws JsonProcessingException {
         List<Setmeal> list = null;
 //        先查询redis有没有缓存数据 如果没有查询数据库
