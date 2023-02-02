@@ -35,7 +35,7 @@ public class OrderController {
     /**
      * 查询订单信息
      */
-    @GetMapping("/userPage")
+    @GetMapping("/page")
     public Result<Page<Orders>> page(Integer page ,Integer pageSize){
         Page<Orders> ordersPage = new Page<>(page,pageSize);
         orderService.page(ordersPage);
